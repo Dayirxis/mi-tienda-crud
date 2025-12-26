@@ -10,10 +10,17 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((error) => console.error('Error al conectar:', error));
 
 const esquemaProducto = new mongoose.Schema({
-    nombre: String,
-    precio: Number
+    nombre: {
+    type: String,
+    required: true
+    
+},
+precio: {
+    type: Number,
+    min: 0,
+    required: true
+  },
 });
-
 const Producto = mongoose.model('Producto', esquemaProducto);
 
 app.get('/', function (req, res) {
