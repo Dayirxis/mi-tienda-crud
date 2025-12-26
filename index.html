@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <tittle>Mi Tienda</tittle>
+        <style>
+            body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+            #formulario { background: white; padding: 20px; margin-bottom: 20px; border-radius:8px; }
+            input { padding: 8px; border: 1px solid #ccc; }
+            button { background: #28a745; color: white; border: none; padding: 8px 15px; cursor: pointer; }
+            li {
+                background: white;
+                margin: 10px 0;
+                padding: 15;
+                border-radius: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            li button {
+                background-color: #e74c3c;
+                margin-left: 10px;
+            }
+            li button:hover {
+                background-color: #c0392b;
+            }
+
+        </style>
+    </head>    
+<body>
+
+    <h1>Mis Productos</h1>
+    <h3 id="total-inventario">Total Inventario: $0</h3>
+
+<div id="formulario" >
+    <input type="text" id="nombre-producto" placeholder="Nombre del producto">
+    <input type="number" id="precio-producto" placeholder="Precio">
+    <button id="btn-guardar">Guardar</button>
+</div>  
+
+    <ul id="contenedor-productos"></ul>   
+     <script>
+      
+      const estante = document.getElementById('contenedor-productos');
+      const elementoTotal = document.getElementById('total-inventario');
+
+      fetch('/productos')
+         .then(res => res.json())
+         .then(productos => {
+            let sumaTotal = 0;
+
+            productos.forEach(producto => {
+                const linea = document.createElement('li');
+
+                linea.innerHTML = `<span>${producto.nombre} - $${producto.precio}</span>`;
+
+                const btnEditar = document.createElement('button');
+                btnEditar.innerText = '✏️';
+                btnEditar.style.backgroundColor = '#f1c40f';
+
+                btnEditar.addEventListener('click', () => {
+                    const nuevoNombre = prompt("Nuevo nombre:", producto.nombre);
+                    const nuevoPrecio = prompt("Nuevo precio:", producto.precio);
+
+                    if (nuevoNombre && nuevoPrecio) {
+                        const datosActualizados = {
+                            nombre: nuevoNombre,
+                            precio: nuevoPrecio
+                        };
+
+                        fetch('/productos/' + producto._id, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(datosActualizados)
+                        })
+                        .then(() => {
+                            window.location.reload();
+                        });
+                    }
+                }); 
+
+                const btnEliminar = document.createElement('button');
+                btnEliminar.innerText = '🗑️';
+
+                btnEliminar.addEventListener('click', () => {
+                    const confirmar = confirm("¿Seguro que quieres borrar " + producto.nombre + "?");
+
+                    if (confirmar) {
+                        fetch('/productos/' + producto._id, {
+                            method: 'DELETE'
+                        })
+                        .then(() => {
+                            window.location.reload();
+                        });
+                    }
+                });
+                        
+                    
+                linea.appendChild(btnEditar);
+                linea.appendChild(btnEliminar);
+
+               sumaTotal = sumaTotal + producto.precio;
+               
+                estante.appendChild(linea);
+            });
+            elementoTotal.innerText = "Total Inventario: $" + sumaTotal;
+         });
+
+         const boton = document.getElementById('btn-guardar');
+         const inputNombre = document.getElementById('nombre-producto');
+         const inputPrecio = document.getElementById('precio-producto');
+         
+         boton.addEventListener('click', () => {
+            const nuevoProducto = {
+                nombre: inputNombre.value,
+                precio: inputPrecio.value
+            };
+
+            fetch('/productos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nuevoProducto)
+            })
+            .then(() => {
+                window.location.reload();
+            });
+         });
+     </script>
+    </body>
+</html>
